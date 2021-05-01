@@ -1,0 +1,352 @@
+#!/usr/bin/python3
+
+# PyTodo
+# Simple CLI to-do
+# v0.0.1
+
+import json
+import argparse
+import questionary
+import os
+from datetime import datetime
+from tinydb import TinyDB, Query
+from os import path
+from rich.table import Table
+from rich.console import Console
+from rich import box
+
+DB_FILE_TASKS = os.environ['HOME'] + '/.pytodo/tasks.json'
+DB_FILE_CATEGORY = os.environ['HOME'] + '/.pytodo/category.json'
+
+parser = argparse.ArgumentParser(description="pytodo")
+
+parser.add_argument('-nt',
+                    '--new-task',
+                    action='store_true',
+                    dest='new_task',
+                    help='Create a new task')
+
+parser.add_argument('-gt',
+                    '--get-task',
+                    dest='get_task',
+                    nargs=1,
+                    metavar='',
+                    help='Get information for a task')
+
+parser.add_argument('-lt',
+                    '--list-tasks',
+                    dest='list_tasks',
+                    choices=['ALL', 'ABORTED', 'DONE', 'TODO'],
+                    help='List all tasks')
+
+parser.add_argument('-dt',
+                    '--delete-task',
+                    dest='delete_task',
+                    nargs=1,
+                    metavar='',
+                    help='Delete a task')
+
+parser.add_argument('-ut',
+                    '--update-task',
+                    dest='update_task',
+                    nargs=1,
+                    metavar='',
+                    help='Update a task')
+
+parser.add_argument('-nc',
+                    '--new-category',
+                    action='store_true',
+                    dest='new_category',
+                    help='Create a new category')
+
+parser.add_argument('-lc',
+                    '--list-category',
+                    action='store_true',
+                    dest='list_category',
+                    help='List all category')
+
+args = parser.parse_args()
+
+def confirmation_question(question):
+    answer = questionary.confirm(question).ask()
+    return answer
+
+
+def input_question(question):
+    answer = questionary.text(question).ask()
+    return answer
+
+
+def listing_categories(question, choices):
+    answer = questionary.select(
+            question,
+            choices=choices
+            ).ask()
+    return answer
+
+
+def status_color(status):
+    color_status = ""
+    # setting emoji for status
+    if status == "TODO":
+        color_status = "🟡"
+    elif status == "DONE":
+        color_status = "🟢"
+    elif status == "ABORTED":
+        color_status = "🔴"
+    return color_status
+
+
+def get_status():
+    status = [
+                'TODO 🟡',
+                'DONE 🟢',
+                'ABORTED 🔴'
+            ]
+    return status
+
+
+def create_category():
+    # get value
+    category_name = input_question("Category name:")
+    category_emoji = input_question("Insert emoji:")
+
+    database = TinyDB(DB_FILE_CATEGORY)
+    database.insert({
+            'id': category_name,
+            'emoji': category_emoji
+        })
+    print(f"Created {category_name}")
+
+
+def get_all_category():
+    database = TinyDB(DB_FILE_CATEGORY)
+
+    categories = []
+    for category in database.all():
+        categories.append(f"{category['emoji']} {category['id']}")
+    return categories
+
+
+def get_category_emoji(category):
+    # just in case there is no category
+    if category == None:
+        return "📋"
+    category = category[2:]
+    database = TinyDB(DB_FILE_CATEGORY)
+    Category = Query()
+    result = database.search(Category.id == category)
+    return result[0]['emoji']
+
+
+def list_category():
+    database = TinyDB(DB_FILE_CATEGORY)
+    categories = database.all()
+
+    console = Console()
+    table = Table(box=box.SIMPLE)
+    table.add_column('Category name')
+    table.add_column('Emoji')
+
+    for category in categories:
+        table.add_row(category['id'], category['emoji'])
+
+    console.print(table)
+
+
+
+def get_task_id(task):
+    return task.get('id')
+
+
+def generate_task_id():
+    database = TinyDB(DB_FILE_TASKS)
+    tasks_list = database.all()
+
+    if not tasks_list:
+        return 'TASK-0001'
+
+    tasks_list.sort(key=get_task_id, reverse=True)
+    # getting returned value and iterating it
+    highest_tasks = tasks_list[0]['id']
+    number = int(highest_tasks[5:]) + 1
+    missing_zeros = 4 - len(str(number))
+    task_id = "TASK-" + ("0" * missing_zeros) + str(number)
+    return task_id
+
+
+def create_task():
+    status = "TODO"
+
+    name = input_question("Enter task name:")
+
+    # asking is a description is needed
+    need_description = confirmation_question("Is a description needed ?")
+    if need_description:
+        description = input_question("Enter description:")
+    else:
+        description = None
+    
+    # asking for a category
+    need_category = confirmation_question("Is a category needed ?")
+    if need_category:
+        category = listing_categories("Select a category", get_all_category())
+    else:
+        category = None
+
+    # asking for a due date 
+    need_duedate = confirmation_question("Is a due date required ?")
+    if need_duedate:
+        due_date = input_question("Enter due date:")
+    else:
+        due_date = None
+
+    # configuring date element
+    creation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    last_update = creation_date
+
+    # setting task_id 
+    task_id = generate_task_id()
+
+    new_task = {
+        'id': task_id,
+        'name': name,
+        'status': status,
+        'creation_date': creation_date,
+        'last_update': last_update,
+        'description': description,
+        'category': category,
+        'due_date': due_date
+    }
+
+    database = TinyDB(DB_FILE_TASKS)
+    database.insert(new_task)
+
+    # return the created task_id
+    print("Created task: " + task_id)
+
+
+def get_task(task_id):
+    database = TinyDB(DB_FILE_TASKS)
+    Task = Query()
+    result = database.search(Task.id == task_id)
+
+    # create table and display them
+    console = Console()
+    table = Table(box=box.SIMPLE)
+
+    table.add_column(f"{result[0]['id']}")
+    table.add_row(f"Name : {result[0]['name']}")
+    table.add_row(f"Status : {status_color(result[0]['status'])} ({result[0]['status']})")
+    table.add_row(f"Category : {result[0]['category']}")
+    if result[0]['due_date'] != None:
+        table.add_row(f"Due date : {result[0]['due_date']}")
+    table.add_row(f"Creation date : {result[0]['creation_date']}")
+    table.add_row(f"Last update : {result[0]['last_update']}")
+    console.print(table)
+
+    if result[0]['description'] != None:
+        table_desc = Table(box=box.SIMPLE, show_header=True)
+        table_desc.add_column('Description')
+        table_desc.add_row(result[0]['description'])
+        console.print(table_desc)
+
+
+def get_all_task(status_dict=None):
+
+    database = TinyDB(DB_FILE_TASKS)
+    result = database.all()
+
+    console = Console()
+
+    # creating table and assigning value into it
+    table = Table(show_header=True, box=box.SIMPLE)
+    table.add_column('ID')
+    table.add_column('Name')
+    table.add_column('Status')
+    table.add_column('Category')
+    table.add_column('Due date')
+    table.add_column('Creation date')
+    table.add_column('Last update')
+
+    for task in result:
+        if task['status'] in status_dict or status_dict == 'ALL':
+            # getting emoji for display purpose
+            emoji = get_category_emoji(task['category'])
+
+            # making sure no "appears"
+            if task['category'] == None:
+                category = ""
+            else:
+                category = task['category']
+            if task['due_date'] == None:
+                due_date = ""
+            else: 
+                due_date = task['due_date']
+            status = status_color(task['status']) + f" {task['status']}"
+
+            table.add_row(
+                    task['id'],
+                    task['name'],
+                    status,
+                    category,
+                    due_date,
+                    task['creation_date'],
+                    task['last_update'],
+                )
+    
+    console.print(table)
+
+
+def delete_task(task_id):
+    database = TinyDB(DB_FILE_TASKS)
+    Task = Query()
+    database.remove(Task.id == task_id)
+    print(f"Deleted {task_id}")
+
+
+def update_task(task_id):
+    database = TinyDB(DB_FILE_TASKS)
+    Task = Query()
+    need_update_status = confirmation_question("Need to update status of task ?")
+    if need_update_status:
+        status = listing_categories("Choose status:", get_status())
+        database.update({'status': status[:-2]}, Task.id == task_id)
+    need_update_description = confirmation_question("Need to update description of task ?")
+    if need_update_description:
+        description = input_question("Enter description:")
+        if not description:
+            description = None
+        database.update({'description': description}, Task.id == task_id)
+
+
+def first_initialization():
+    dir_path = os.environ['HOME'] + '/.pytodo'
+    if path.exists(dir_path):
+        return None
+    else:
+        os.mkdir(dir_path)
+        
+first_initialization()
+
+if args.new_task:
+    create_task()
+
+if args.list_tasks:
+    get_all_task(args.list_tasks)
+
+if args.get_task:
+    get_task(args.get_task[0])
+
+if args.delete_task:
+    delete_task(args.delete_task[0])
+
+if args.update_task:
+    update_task(args.update_task[0])
+
+if args.new_category:
+    create_category()
+
+if args.list_category:
+    list_category()
+
