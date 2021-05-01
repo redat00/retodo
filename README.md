@@ -8,7 +8,7 @@ pytodo is an application that help you manage your time by creating task
 
 ## usage
 
-`
+```
 usage: pytodo [-h] [-nt] [-gt] [-lt {ALL,ABORTED,DONE,TODO}] [-dt] [-ut] [-nc] [-lc]
 
 pytodo
@@ -23,7 +23,7 @@ optional arguments:
   -ut , --update-task   Update a task
   -nc, --new-category   Create a new category
   -lc, --list-category  List all category
-  `
+```
 
 ---
 ## installation
