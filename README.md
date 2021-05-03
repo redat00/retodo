@@ -9,20 +9,19 @@ pytodo is an application that help you manage your time by creating task
 ## usage
 
 ```
-usage: pytodo [-h] [-nt] [-gt] [-lt {ALL,ABORTED,DONE,TODO}] [-dt] [-ut] [-nc] [-lc]
+Usage: pytodo [OPTIONS] COMMAND [ARGS]...
 
-pytodo
+Options:
+  --help  Show this message and exit.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -nt, --new-task       Create a new task
-  -gt , --get-task      Get information for a task
-  -lt {ALL,ABORTED,DONE,TODO}, --list-tasks {ALL,ABORTED,DONE,TODO}
-                        List all tasks
-  -dt , --delete-task   Delete a task
-  -ut , --update-task   Update a task
-  -nc, --new-category   Create a new category
-  -lc, --list-category  List all category
+Commands:
+  delete-task      Delete a task
+  get-task         Get task details
+  list-categories  List all categories
+  list-tasks       List all tasks
+  new-category     Create a new category
+  new-task         Create a new task
+  update-task      Update a task
 ```
 
 ---
