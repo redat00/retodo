@@ -1,6 +1,6 @@
-# pytodo
+# retodo
 
-pytodo is an application that help you manage your time by creating task
+retodo is an application that help you manage your time by creating task
 
 
 ---
@@ -8,27 +8,60 @@ pytodo is an application that help you manage your time by creating task
 
 ## usage
 
+
+Main command (retodo)
 ```
-Usage: pytodo [OPTIONS] COMMAND [ARGS]...
+Usage: retodo [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
 
 Commands:
-  delete-task      Delete a task
-  get-task         Get task details
-  list-categories  List all categories
-  list-tasks       List all tasks
-  new-category     Create a new category
-  new-task         Create a new task
-  update-task      Update a task
+  category
+  task
 ```
+
+- Subcommand (category)
+```
+Usage: retodo category [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  delete  Delete a category
+  list    List all categories
+  new     Create a new category
+
+```
+
+- Subcomand (task)
+```
+Usage: retodo task [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  delete  Delete a task
+  get     Get task details
+  list    List all tasks
+  new     Create a new task
+  update  Update a task
+```
+
+Tips : 
+
+You can actually use aliases for command, just like this : 
+
+- `retodo c l` is equivalent to `retodo category list`
+- `retodo t n` is equivalent to `retodo task new`
 
 ---
 ## installation
 
-In order to install pytodo you will have to install some python modules : 
-
-- `pip install rich`
-- `pip install tinydb`
-- `pip install questionary`
+```
+git clone git@github.com:redat00/retodo.git
+cd retodo
+pip3 install .
+```
