@@ -2,14 +2,9 @@
 
 retodo is an application that help you manage your time by creating task
 
+## Usage
 
----
-### Only work on Linux (and probably MacOS) environnement for now ! 
-
-## usage
-
-
-Main command (retodo)
+### Main command (retodo)
 ```
 Usage: retodo [OPTIONS] COMMAND [ARGS]...
 
@@ -21,7 +16,7 @@ Commands:
   task
 ```
 
-- Subcommand (category)
+### category subcommand
 ```
 Usage: retodo category [OPTIONS] COMMAND [ARGS]...
 
@@ -35,7 +30,7 @@ Commands:
 
 ```
 
-- Subcomand (task)
+### task subcommand
 ```
 Usage: retodo task [OPTIONS] COMMAND [ARGS]...
 
@@ -57,8 +52,7 @@ You can actually use aliases for command, just like this :
 - `retodo c l` is equivalent to `retodo category list`
 - `retodo t n` is equivalent to `retodo task new`
 
----
-## installation
+## Installation
 
 ```
 git clone git@github.com:redat00/retodo.git
