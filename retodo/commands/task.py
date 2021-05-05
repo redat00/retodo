@@ -158,6 +158,9 @@ def create_task():
     # asking for a category
     need_category = confirmation_question("Is a category needed ?")
     if need_category:
+        if not get_all_category():
+            print("You should first create at least one category")
+            return 1
         category = listing_categories("Select a category", get_all_category())
     else:
         category = None
@@ -350,4 +353,3 @@ def update_task(task_id):
     if need_update_status or need_update_description:
         new_date_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         database.update({'last_update': new_date_update}, Task.id == task_id)
-
